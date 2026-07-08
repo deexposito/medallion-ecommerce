@@ -1,0 +1,14 @@
+# Copia aquest fitxer com a `profiles.yml` (gitignored) a l'arrel del projecte,
+# o a ~/.dbt/profiles.yml com és habitual en dbt.
+#
+# DuckDB no necessita servidor ni credencials: la "base de dades" és
+# simplement un fitxer local (.duckdb) que es crea sol la primera vegada
+# que fas `dbt run`.
+
+medallion_ecommerce:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'medallion.duckdb'
+      threads: 4

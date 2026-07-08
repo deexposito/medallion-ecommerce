@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+
+# dbt
+target/
+dbt_packages/
+logs/
+profiles.yml
+
+# dades cru (no es pugen a GitHub, s'expliquen a README com descarregar-les)
+data/raw/*
+!data/raw/.gitkeep
+*.duckdb
+
+# Power BI
+*.pbix.bak
+
+.env
