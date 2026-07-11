@@ -2,6 +2,7 @@ select
     oi.order_id,
     oi.order_item_id,
     oi.seller_id,
+    s.seller_city,
     s.seller_state,
     s.seller_state_name,
     d.full_date as purchase_date,

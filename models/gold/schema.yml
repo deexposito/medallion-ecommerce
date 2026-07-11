@@ -32,7 +32,10 @@ models:
       on seller and delivery timing rather than revenue. Carries
       purchase_date so it can relate to the shared dim_date calendar
       table in Power BI (originally missing - caught when adding a
-      calendar table to the report).
+      calendar table to the report). Sellers have no published business
+      name in the Olist dataset (deliberately anonymized), so
+      seller_city/seller_state_name are the closest real, non-fabricated
+      identifying context available.
     columns:
       - name: order_id
         data_tests: [not_null]
