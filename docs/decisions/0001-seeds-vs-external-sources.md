@@ -1,23 +1,46 @@
-# 0001 — Seeds vs external sources per a la capa Bronze
+# 0001 — Seeds vs external sources for the Bronze layer
 
-Estat: Acceptat
-Data: 2026-07-11
+Status: Accepted
+Date: 2026-07-11
 
 ## Context
 
-El dataset Olist arriba com a 9 CSVs. Vuit són taules transaccionals (comandes, ítems, pagaments, reviews, clients, productes, venedors, geolocalització), amb desenes de milers a més d'un milió de files, i representen dades que en un entorn real es recarregarien periòdicament des dels sistemes font. La novena (`product_category_name_translation`) és un simple diccionari de traducció de 71 files que no prové de cap sistema transaccional i no canvia mai. dbt necessita que totes acabin sent "taules" consultables des de `sources.yml`/models, però no totes haurien d'entrar-hi de la mateixa manera.
+The Olist dataset ships as 9 CSVs. Eight are transactional tables (orders,
+order items, payments, reviews, customers, products, sellers,
+geolocation), ranging from tens of thousands to over a million rows, and
+represent data that in a real environment would be reloaded periodically
+from source systems. The ninth (`product_category_name_translation`) is a
+simple 71-row translation lookup that comes from no transactional system
+and never changes. dbt needs all of them to end up queryable as "tables"
+from `sources.yml`/models, but not all of them should get there the same
+way.
 
-## Decisió
+## Decision
 
-Les 8 taules transaccionals es declaren a `sources.yml` amb `meta.external_location`, apuntant DuckDB directament als CSV originals (equivalent local a una taula externa sobre un data lake). Només `product_category_name_translation` es carrega com a `dbt seed`.
+The 8 transactional tables are declared in `sources.yml` with
+`meta.external_location`, pointing DuckDB directly at the original CSVs
+(the local equivalent of an external table over a data lake). Only
+`product_category_name_translation` is loaded as a `dbt seed`.
 
-## Alternatives considerades
+## Alternatives considered
 
-- **Totes 9 com a seeds**: descartat. `dbt seed` és per a dades de referència petites i estàtiques que es mantenen al repo; carregar-hi taules de centenars de milers de files és un anti-patró reconegut (infla el repo, viola el propòsit de l'eina, i no reflecteix com s'ingesten dades transaccionals reals).
-- **Totes 9 com a external sources**: descartat per a la taula de traducció. És exactament el cas d'ús que `seed` sí que cobreix bé (petita, estàtica, mantinguda a mà), i fer-la external només per coherència no aporta res.
+- **All 9 as seeds**: rejected. `dbt seed` is meant for small, static
+  reference data kept in the repo; loading hundreds of thousands of rows
+  through it is a recognized anti-pattern (bloats the repo, defeats the
+  tool's purpose, and doesn't reflect how transactional data is really
+  ingested).
+- **All 9 as external sources**: rejected for the translation table. It's
+  exactly the use case `seed` is built for (small, static, hand-maintained)
+  — making it external for the sake of consistency wouldn't add anything.
 
-## Conseqüències
+## Consequences
 
-- Les 8 taules grans no es distribueixen al repo Git (mida i llicència de Kaggle): qui cloni el repo ha de descarregar-se el dataset i posar-lo a `data/raw/` abans de poder córrer `dbt build` — documentat al README.
-- La taula de traducció sí viu al repo (com a `seeds/product_category_name_translation.csv`), versionada com qualsevol altre fitxer de codi.
-- Si en el futur alguna de les 8 taules "grans" es convertís en petita i estàtica (poc probable aquí), caldria replantejar-se si continua tenint sentit com a external source o si val la pena passar-la a seed.
+- The 8 large tables are not distributed in the Git repo (size and Kaggle
+  license): anyone cloning the repo has to download the dataset and place
+  it in `data/raw/` before running `dbt build` — documented in the README.
+- The translation table does live in the repo (as
+  `seeds/product_category_name_translation.csv`), version-controlled like
+  any other code file.
+- If one of the 8 "large" tables ever became small and static (unlikely
+  here), it would be worth reconsidering whether it still makes sense as
+  an external source or should move to a seed.

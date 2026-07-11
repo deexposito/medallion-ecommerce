@@ -9,7 +9,7 @@ logs/
 profiles.yml
 .user.yml
 
-# dades cru (no es pugen a GitHub, s'expliquen a README com descarregar-les)
+# raw data (not uploaded to GitHub, download instructions in README)
 data/raw/*
 !data/raw/.gitkeep
 *.duckdb

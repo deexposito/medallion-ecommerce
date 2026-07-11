@@ -1,14 +1,12 @@
-# Silver (Capa Semàntica)
+# Silver (Semantic layer)
 
-Equivalent a la "Capa Semàntica" del diagrama de Denis.
-
-Aquí van els models que consoliden les taules `stg_*` de bronze en un model
-relacional net i amb lògica de negoci: joins, deduplicació, regles de
-negoci (p.ex. estat d'una comanda, definició de "client actiu"), claus
-consistents entre entitats (`dim_customers`, `dim_products`, `dim_sellers`,
+Models that consolidate the `stg_*` tables from bronze into a clean
+relational model with business logic: joins, deduplication, business
+rules (e.g. order status, "active customer" definition), consistent keys
+across entities (`dim_customers`, `dim_products`, `dim_sellers`,
 `fct_orders`, `fct_order_items`, `fct_payments`, `fct_reviews`...).
 
-Independent de d'on venia cada dada originalment — aquí ja parlem el
-llenguatge del negoci, no el de cada sistema font.
+Independent of where each piece of data originally came from — this is
+where we speak the language of the business, not of each source system.
 
-Esborra aquest fitxer quan hi hagi contingut real.
+Delete this file once real content exists.

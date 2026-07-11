@@ -1,16 +1,14 @@
-# Gold (Dominis i Explotació/Consum)
+# Gold (Domains / Consumption)
 
-Equivalent a "Dominis de dades / Productes de dades" del diagrama de Denis.
+Business domain data marts, built directly for consumption (Power BI).
+Proposed domains for this project (to validate/adjust once the Silver
+model is settled):
 
-Aquí van els *data marts* per domini de negoci, pensats directament per al
-consum (Power BI). Proposta de dominis per a aquest projecte (a validar/
-ajustar quan es conegui bé el model Silver):
+- `mart_sales` — revenue, orders by period/category/region.
+- `mart_customer_experience` — reviews, satisfaction, perceived delivery time.
+- `mart_logistics` — shipping times, sellers, logistics performance.
 
-- `mart_sales` — vendes, ingressos, comandes per període/categoria/regió.
-- `mart_customer_experience` — reviews, satisfacció, temps d'entrega percebut.
-- `mart_logistics` — temps d'enviament, venedors, rendiment logístic.
+Each mart answers a specific consumption use case, not general business
+logic (that's already resolved in Silver).
 
-Cada mart respon a un cas d'ús concret de consum, no a la lògica general
-de negoci (això ja es resol a Silver).
-
-Esborra aquest fitxer quan hi hagi contingut real.
+Delete this file once real content exists.

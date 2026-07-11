@@ -1,9 +1,9 @@
-# Copia aquest fitxer com a `profiles.yml` (gitignored) a l'arrel del projecte,
-# o a ~/.dbt/profiles.yml com és habitual en dbt.
+# Copy this file to `profiles.yml` (gitignored) at the project root,
+# or to ~/.dbt/profiles.yml as is customary for dbt.
 #
-# DuckDB no necessita servidor ni credencials: la "base de dades" és
-# simplement un fitxer local (.duckdb) que es crea sol la primera vegada
-# que fas `dbt run`.
+# DuckDB needs no server or credentials: the "database" is simply a local
+# file (.duckdb) that gets created automatically the first time you run
+# `dbt run`.
 
 medallion_ecommerce:
   target: dev
