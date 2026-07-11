@@ -150,7 +150,7 @@ erDiagram
   }
 ```
 
-*(`DECIMAL` fields are `DECIMAL(10,2)` in the actual dbt models — Mermaid's ER parser doesn't allow commas inside a type name, so precision is dropped in the diagram only.)*
+*(`DECIMAL` fields are `DECIMAL(10,2)` in the actual dbt models — Mermaid's ER parser doesn't allow commas inside a type name, so precision is dropped in the diagram only. `VARCHAR` is intentionally left unsized: DuckDB accepts a length modifier for SQL compatibility but doesn't enforce it — like most modern columnar warehouses (Snowflake, BigQuery, Fabric/Delta), storage isn't fixed-width, so a fake `VARCHAR(255)` would be cosmetic rather than a real constraint. That's a meaningful difference from OLTP database design.)*
 
 ## Dataset
 
