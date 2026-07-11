@@ -35,19 +35,27 @@ bolted onto Gold.
 ## 3. Report locale (English units: K/M, not "mil")
 
 Power BI's automatic "Display units" on cards/axes are labelled
-according to the report's language, which defaults to the Windows
-locale — in Catalan/Spanish that's "mil"/"M" instead of "K"/"M".
+according to the report's language, which defaults to the Windows locale
+— in Catalan/Spanish that's "mil"/"M" instead of "K"/"M".
 
-`File` → `Options and settings` → `Options` → `Current File` →
-`Regional Settings` → set `Locale` to `English (United States)`. This
-also switches thousands/decimal separators to English convention —
-worth doing before building anything, since it's a portfolio piece.
+**`File` → `Options and settings` → `Options` → `Current File` →
+`Regional Settings` → `Locale` → `English (United States)` is the
+"correct in theory" fix, but it isn't reliable in practice** (it mainly
+governs how Power Query parses source data, and even when it does affect
+display it often needs a full close/reopen of the file to take effect).
+Don't depend on it.
 
-For exact control on a specific measure regardless of locale (e.g. force
-`Total Revenue` to always show as millions), set a custom format code on
-the measure instead: `Measure tools` → `Format` → `Custom`:
+**What actually works, regardless of locale: a custom format code on
+each measure**, bypassing the automatic "Display units" feature
+entirely. Select the measure → contextual ribbon `Measure tools` →
+`Format` dropdown → `Custom` → type a code:
 - Thousands: `#,##0.0,"K"` (the trailing comma divides by 1,000)
 - Millions: `#,##0.0,,"M"` (two trailing commas divide by 1,000,000)
+
+Pick per measure based on its actual order of magnitude (e.g.
+`Total Revenue` on Olist is ~13.5M → use the millions code; something in
+the low thousands → use the thousands code; `Avg Order Value` is ~120-160
+→ no scaling needed, just a normal currency/decimal format).
 
 ## 4. Measures table
 
