@@ -164,8 +164,6 @@ erDiagram
   }
 ```
 
-*(`DECIMAL` fields are `DECIMAL(10,2)` in the actual dbt models — Mermaid's ER parser doesn't allow commas inside a type name, so precision is dropped in the diagram only. `VARCHAR` is intentionally left unsized: DuckDB accepts a length modifier for SQL compatibility but doesn't enforce it — like most modern columnar warehouses (Snowflake, BigQuery, Fabric/Delta), storage isn't fixed-width, so a fake `VARCHAR(255)` would be cosmetic rather than a real constraint. That's a meaningful difference from OLTP database design.)*
-
 ## Data model (Gold layer)
 
 Three denormalized, business-facing marts, one per domain — flat tables
@@ -227,6 +225,9 @@ reproduce:
 ## Setup
 
 ```powershell
+git clone https://github.com/deexposito/medallion-ecommerce.git
+cd medallion-ecommerce
+
 python -m venv .venv
 .venv\Scripts\Activate.ps1      # Windows PowerShell; use .venv\Scripts\activate.bat for cmd.exe
 pip install -r requirements.txt
@@ -263,16 +264,16 @@ request — validates the whole project (refs, Jinja, `schema.yml`)
 without needing the dataset. Deliberately not a full `dbt build`; see
 `docs/decisions/0002-lightweight-ci.md` for why.
 
-## Roadmap
+## Build phases
 
-- [x] **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
-- [x] **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
-- [x] **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
-- [x] **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
-- [x] **Phase 4 — Consumption**: 3-page Power BI dashboard (Sales, Customer Experience, Logistics) connected to the 3 Gold marts + shared `dim_date` calendar table. Built by hand in Power BI Desktop per `power-bi/README.md`.
-- [x] **Phase 5 — Polish**: `dbt docs generate` (lineage graph), lightweight CI (`dbt parse` — `docs/decisions/0002-lightweight-ci.md`), this README pass.
-- [ ] **Phase 6 — Publish**: public GitHub repo, linked from the portfolio.
+- **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
+- **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
+- **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
+- **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
+- **Phase 4 — Consumption**: 3-page Power BI dashboard (Sales, Customer Experience, Logistics) connected to the 3 Gold marts + shared `dim_date` calendar table. Built by hand in Power BI Desktop per `power-bi/README.md`.
+- **Phase 5 — Polish**: `dbt docs generate` (lineage graph), lightweight CI (`dbt parse` — `docs/decisions/0002-lightweight-ci.md`).
+- **Phase 6 — Publish**: public GitHub repo, CI passing on GitHub Actions.
 
 ## Status
 
-🚧 In progress — Phase 5 (Polish) complete, Phase 6 (Publish) next.
+✅ Complete — [github.com/deexposito/medallion-ecommerce](https://github.com/deexposito/medallion-ecommerce).
