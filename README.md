@@ -158,6 +158,29 @@ erDiagram
 
 *(`DECIMAL` fields are `DECIMAL(10,2)` in the actual dbt models — Mermaid's ER parser doesn't allow commas inside a type name, so precision is dropped in the diagram only. `VARCHAR` is intentionally left unsized: DuckDB accepts a length modifier for SQL compatibility but doesn't enforce it — like most modern columnar warehouses (Snowflake, BigQuery, Fabric/Delta), storage isn't fixed-width, so a fake `VARCHAR(255)` would be cosmetic rather than a real constraint. That's a meaningful difference from OLTP database design.)*
 
+## Data model (Gold layer)
+
+Three denormalized, business-facing marts, one per domain — flat tables
+ready for direct Power BI consumption without needing to rebuild
+star-schema relationships. Grain and shared calculation logic:
+
+| Mart | Grain | Focus |
+|---|---|---|
+| `mart_sales` | one row per order item | revenue by date/category/seller/customer state |
+| `mart_customer_experience` | one row per (review_id, order_id) | review scores vs. delivery timing |
+| `mart_logistics` | one row per order item | shipping performance by seller |
+
+`delivery_days`/`delay_days`/`is_late` are computed identically in
+`mart_customer_experience` and `mart_logistics` (same question, two
+audiences: satisfaction vs. operations) — rather than duplicate the SQL,
+the calculation lives in one place: the `days_between()` macro
+(`macros/days_between.sql`).
+
+The data backs this up with a real finding: average review score is
+**4.29 for on-time deliveries vs. 2.27 for late ones** (and 1.76 for
+orders reviewed before delivery even completed) — a concrete, queryable
+answer to "does shipping performance affect customer satisfaction?".
+
 ## Dataset
 
 [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
@@ -189,11 +212,11 @@ dbt build
 - [x] **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
 - [x] **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
 - [x] **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
-- [ ] **Phase 3 — Gold**: 3 domain data marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`).
+- [x] **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
 - [ ] **Phase 4 — Consumption**: Power BI dashboard connected to Gold, screenshots in `power-bi/`.
 - [ ] **Phase 5 — Polish**: `dbt docs generate`, final README, optional CI with GitHub Actions (`dbt build` on every push).
 - [ ] **Phase 6 — Publish**: public GitHub repo, linked from the portfolio.
 
 ## Status
 
-🚧 In progress — Phase 2 (Silver) complete, Phase 3 (Gold) next.
+🚧 In progress — Phase 3 (Gold) complete, Phase 4 (Power BI) next.

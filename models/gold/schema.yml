@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: mart_sales
+    description: >
+      Denormalized sales mart, grain: one row per order item. Flattens
+      date/product/seller/customer attributes so it's ready for direct
+      Power BI consumption without needing to rebuild star-schema
+      relationships.
+    columns:
+      - name: order_id
+        data_tests: [not_null]
+      - name: order_item_id
+        data_tests: [not_null]
+      - name: price
+        data_tests: [not_null]
+
+  - name: mart_customer_experience
+    description: >
+      Denormalized reviews mart, grain: one row per (review_id, order_id) -
+      same composite grain discovered in fct_reviews. Adds delivery
+      timing so review scores can be analyzed against on-time performance.
+    columns:
+      - name: review_id
+        data_tests: [not_null]
+      - name: order_id
+        data_tests: [not_null]
+
+  - name: mart_logistics
+    description: >
+      Denormalized shipping mart, grain: one row per order item, focused
+      on seller and delivery timing rather than revenue.
+    columns:
+      - name: order_id
+        data_tests: [not_null]
+      - name: order_item_id
+        data_tests: [not_null]
+      - name: seller_id
+        data_tests: [not_null]
