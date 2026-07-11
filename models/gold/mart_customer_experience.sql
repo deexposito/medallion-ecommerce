@@ -6,6 +6,7 @@ select
     r.review_score,
     r.review_creation_date,
     c.customer_state,
+    c.customer_state_name,
     {{ days_between('d.full_date', 'o.order_delivered_customer_date::date') }} as delivery_days,
     {{ days_between('o.order_estimated_delivery_date::date', 'o.order_delivered_customer_date::date') }} as delay_days,
     {{ days_between('o.order_estimated_delivery_date::date', 'o.order_delivered_customer_date::date') }} > 0 as is_late

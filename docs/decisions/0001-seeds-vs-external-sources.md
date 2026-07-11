@@ -44,3 +44,11 @@ The 8 transactional tables are declared in `sources.yml` with
 - If one of the 8 "large" tables ever became small and static (unlikely
   here), it would be worth reconsidering whether it still makes sense as
   an external source or should move to a seed.
+
+## Addendum (2026-07-11)
+
+A second seed was added for the same reason: `br_state_names`, a 27-row
+Brazilian state code → full name lookup (not part of the Olist dataset —
+general reference data), used to enrich `dim_customers`/`dim_sellers`
+with readable state names for Power BI instead of raw 2-letter codes.
+Same reasoning as above, no new decision needed.

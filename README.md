@@ -105,6 +105,7 @@ erDiagram
     VARCHAR customer_unique_id
     VARCHAR customer_city
     VARCHAR customer_state
+    VARCHAR customer_state_name
   }
   dim_products {
     VARCHAR product_id PK
@@ -116,6 +117,7 @@ erDiagram
     VARCHAR seller_id PK
     VARCHAR seller_city
     VARCHAR seller_state
+    VARCHAR seller_state_name
   }
   dim_date {
     INTEGER date_key PK

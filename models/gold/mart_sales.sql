@@ -7,7 +7,9 @@ select
     d.weekday,
     p.category_name_english as product_category_name_english,
     s.seller_state,
+    s.seller_state_name,
     c.customer_state,
+    c.customer_state_name,
     o.order_status,
     oi.price,
     oi.freight_value

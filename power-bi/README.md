@@ -136,7 +136,9 @@ Visuals:
 - Cards: `Total Revenue`, `Total Orders`, `Avg Order Value`, `Total Freight`, `Freight Pct of Revenue`.
 - Line chart: `Total Revenue` by `full_date` (year/month drill-down).
 - Bar chart: `Total Revenue` by `product_category_name_english` (top 10).
-- Bar or map: `Total Revenue` by `customer_state`.
+- Bar or map: `Total Revenue` by `customer_state_name` (full state name,
+  not the raw 2-letter code — enriched in Silver via the `br_state_names`
+  seed for readability).
 
 ### Page 2 — Customer experience (source table: `mart_customer_experience`)
 
@@ -171,7 +173,7 @@ Avg Delay Days (Late Only) = CALCULATE(AVERAGE(mart_logistics[delay_days]), mart
 
 Visuals:
 - Cards: `Pct On Time Deliveries`, `Avg Delivery Days`.
-- Bar chart: `Pct On Time Deliveries` by `seller_state`.
+- Bar chart: `Pct On Time Deliveries` by `seller_state_name` (full state name).
 - Table: `seller_id`, `Avg Delay Days (Late Only)`, count of items — sorted
   descending, to spot the worst-performing sellers.
 

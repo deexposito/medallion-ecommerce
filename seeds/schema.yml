@@ -1,0 +1,18 @@
+version: 2
+
+seeds:
+  - name: product_category_name_translation
+    description: Small static lookup, English translation of product category names.
+    columns:
+      - name: product_category_name
+        data_tests: [not_null, unique]
+
+  - name: br_state_names
+    description: >
+      Small static lookup, Brazilian state abbreviation (as used
+      throughout the Olist source data) to full state name.
+    columns:
+      - name: state_code
+        data_tests: [not_null, unique]
+      - name: state_name
+        data_tests: [not_null, unique]

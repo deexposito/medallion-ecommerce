@@ -7,9 +7,13 @@ models:
       is generated per order, not per person — `customer_unique_id` is
       the stable identifier for the actual person across multiple orders.
       This dimension's grain matches `fct_orders.customer_id` on purpose.
+      Enriched with `customer_state_name` (full Brazilian state name) via
+      the `br_state_names` seed.
     columns:
       - name: customer_id
         data_tests: [not_null, unique]
+      - name: customer_state_name
+        data_tests: [not_null]
 
   - name: dim_products
     description: One row per `product_id`, enriched with the English category name.
@@ -18,10 +22,14 @@ models:
         data_tests: [not_null, unique]
 
   - name: dim_sellers
-    description: One row per `seller_id`.
+    description: >
+      One row per `seller_id`. Enriched with `seller_state_name` (full
+      Brazilian state name) via the `br_state_names` seed.
     columns:
       - name: seller_id
         data_tests: [not_null, unique]
+      - name: seller_state_name
+        data_tests: [not_null]
 
   - name: dim_date
     description: >
