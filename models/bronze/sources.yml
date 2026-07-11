@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: >
+      Taules transaccionals cru del dataset públic Olist (e-commerce).
+      Es llegeixen directament dels CSV originals via `external_location`
+      (equivalent local a una "taula externa" sobre un data lake): són massa
+      grans i canviants per considerar-se dades de referència estàtiques,
+      així que no passen per `dbt seed`. Vegeu la decisió documentada a
+      `docs/decisions/0001-seeds-vs-external-sources.md`.
+    tables:
+      - name: customers
+        meta:
+          external_location: "data/raw/olist_customers_dataset.csv"
+        description: "Un registre per client: identificador únic i ubicació (zip/ciutat/estat)."
+      - name: orders
+        meta:
+          external_location: "data/raw/olist_orders_dataset.csv"
+        description: "Una comanda per fila: estat i timestamps de tot el cicle de vida (compra, aprovació, enviament, entrega, estimació)."
+      - name: order_items
+        meta:
+          external_location: "data/raw/olist_order_items_dataset.csv"
+        description: "Un ítem de comanda per fila (una comanda pot tenir diversos ítems)."
+      - name: order_payments
+        meta:
+          external_location: "data/raw/olist_order_payments_dataset.csv"
+        description: "Pagaments associats a cada comanda (una comanda pot tenir més d'un pagament)."
+      - name: order_reviews
+        meta:
+          external_location: "data/raw/olist_order_reviews_dataset.csv"
+        description: "Reviews de clients sobre comandes rebudes."
+      - name: products
+        meta:
+          external_location: "data/raw/olist_products_dataset.csv"
+        description: "Catàleg de productes: categoria i dimensions físiques."
+      - name: sellers
+        meta:
+          external_location: "data/raw/olist_sellers_dataset.csv"
+        description: "Venedors del marketplace, amb ubicació."
+      - name: geolocation
+        meta:
+          external_location: "data/raw/olist_geolocation_dataset.csv"
+        description: "Coordenades geogràfiques per prefix de codi postal (moltes files per zip)."

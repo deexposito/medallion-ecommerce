@@ -79,8 +79,8 @@ dbt build
 
 ## Pla de treball (fases)
 
-- [ ] **Fase 0 — Setup** (fet): esquelet del projecte, dbt + DuckDB instal·lats, repo Git inicialitzat.
-- [ ] **Fase 1 — Bronze**: descarregar dataset, declarar `sources.yml`, escriure els `stg_*.sql` (normalització mínima, sense lògica de negoci).
+- [x] **Fase 0 — Setup**: esquelet del projecte, dbt + DuckDB instal·lats, repo Git inicialitzat.
+- [x] **Fase 1 — Bronze**: dataset descarregat, `sources.yml` (8 taules via `external_location`) + 1 `dbt seed` (taula de referència petita), 9 models `stg_*.sql`. Decisió documentada a `docs/decisions/0001-seeds-vs-external-sources.md`.
 - [ ] **Fase 2 — Silver**: model semàntic (`dim_*`/`fct_*`), joins i regles de negoci, primers tests dbt (`not_null`, `unique`, `relationships`).
 - [ ] **Fase 3 — Gold**: 3 data marts de domini (`mart_sales`, `mart_customer_experience`, `mart_logistics`).
 - [ ] **Fase 4 — Consum**: dashboard Power BI connectat a Gold, captures a `power-bi/`.
@@ -89,4 +89,4 @@ dbt build
 
 ## Estat
 
-🚧 En construcció — Fase 1 en curs.
+🚧 En construcció — Fase 1 (Bronze) completa, Fase 2 (Silver) en curs.
