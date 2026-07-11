@@ -71,6 +71,11 @@ conformed dimensions), designed grain-first before writing any SQL:
 All four share the same conformed dimensions (`dim_customers`,
 `dim_products`, `dim_sellers`, `dim_date`), so metrics from different
 facts stay comparable under the same filters in Power BI.
+`dim_customers`/`dim_sellers` are enriched with full Brazilian state
+names (`br_state_names` seed) — Olist only provides 2-letter codes, and
+sellers have no published business name at all (deliberately
+anonymized), so state + city is the closest real, non-fabricated
+identifying context available.
 
 **Keys**: natural keys are kept for `dim_customers`/`dim_products`/
 `dim_sellers` — this is a single source system with already-unique, stable
@@ -184,6 +189,27 @@ The data backs this up with a real finding: average review score is
 orders reviewed before delivery even completed) — a concrete, queryable
 answer to "does shipping performance affect customer satisfaction?".
 
+## Key findings
+
+Things the data itself surfaced while building this, not decided upfront:
+
+- **Late delivery correlates strongly with dissatisfaction**: 4.29 vs.
+  2.27 average review score, on-time vs. late (`mart_customer_experience`).
+- **`fct_reviews`'s real grain is `(review_id, order_id)`, not `review_id`
+  alone** — a `unique` test failure (789 duplicate groups) caught that
+  `review_id` isn't globally unique and some orders get more than one
+  review. Fixed in the model and documented, not silenced.
+- **A "worst sellers by delay" leaderboard is misleading without a volume
+  floor**: the top-ranked sellers by average delay each had exactly one
+  late delivery — an outlier of n=1, not a pattern. Fixed with a
+  `Late Deliveries Count >= 5` filter (see `power-bi/README.md`).
+- **The last ~5 weeks of data (late Aug–early Sept 2018) taper off to
+  near-zero** — daily order volume declines smoothly for about 10 days
+  before stopping abruptly, consistent with the Olist dataset's known
+  data-collection cutoff rather than a real business event. Not excluded
+  from the dashboard by choice; worth knowing if the trend chart's tail
+  looks like a cliff.
+
 ## Dataset
 
 [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
@@ -223,16 +249,30 @@ activation and call the venv's executables directly instead (same
 effect): `.venv\Scripts\dbt.exe build`,
 `.venv\Scripts\python.exe scripts\export_gold_to_parquet.py`.
 
+## Documentation
+
+`dbt docs generate && dbt docs serve` builds and opens an interactive
+site with every model's description, columns, tests, and — the most
+useful part — the full Bronze → Silver → Gold lineage graph. Not
+committed (generated into the gitignored `target/`); regenerate anytime.
+
+## Continuous integration
+
+`.github/workflows/dbt_ci.yml` runs `dbt parse` on every push and pull
+request — validates the whole project (refs, Jinja, `schema.yml`)
+without needing the dataset. Deliberately not a full `dbt build`; see
+`docs/decisions/0002-lightweight-ci.md` for why.
+
 ## Roadmap
 
 - [x] **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
 - [x] **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
 - [x] **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
 - [x] **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
-- [ ] **Phase 4 — Consumption**: Power BI dashboard connected to Gold. Data hand-off (`scripts/export_gold_to_parquet.py`) and build guide (`power-bi/README.md`) are ready — the report itself is built by hand in Power BI Desktop, no CLI can author visuals.
-- [ ] **Phase 5 — Polish**: `dbt docs generate`, final README, optional CI with GitHub Actions (`dbt build` on every push).
+- [x] **Phase 4 — Consumption**: 3-page Power BI dashboard (Sales, Customer Experience, Logistics) connected to the 3 Gold marts + shared `dim_date` calendar table. Built by hand in Power BI Desktop per `power-bi/README.md`.
+- [x] **Phase 5 — Polish**: `dbt docs generate` (lineage graph), lightweight CI (`dbt parse` — `docs/decisions/0002-lightweight-ci.md`), this README pass.
 - [ ] **Phase 6 — Publish**: public GitHub repo, linked from the portfolio.
 
 ## Status
 
-🚧 In progress — Phase 3 (Gold) complete, Phase 4 (Power BI) next.
+🚧 In progress — Phase 5 (Polish) complete, Phase 6 (Publish) next.

@@ -1,0 +1,28 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - run: cp profiles.yml.example profiles.yml
+
+      # dbt parse validates the whole project (refs, Jinja, schema.yml)
+      # without executing any SQL, so it doesn't need the Olist dataset -
+      # see docs/decisions/0002-lightweight-ci.md for why this is the
+      # right scope instead of a data-dependent full `dbt build`.
+      - run: dbt parse
+        env:
+          DBT_PROFILES_DIR: .
