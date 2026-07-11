@@ -18,5 +18,8 @@ select
     full_date,
     extract(year from full_date) as year,
     extract(month from full_date) as month,
+    -- YYYYMM, e.g. 201809: sorts and groups correctly across years, unlike
+    -- `month` alone (which would merge Jan 2017 and Jan 2018 together).
+    cast(strftime(full_date, '%Y%m') as integer) as year_month,
     strftime(full_date, '%A') as weekday
 from spine

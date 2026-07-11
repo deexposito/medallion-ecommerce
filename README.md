@@ -122,6 +122,7 @@ erDiagram
     DATE full_date
     INTEGER year
     INTEGER month
+    INTEGER year_month
     VARCHAR weekday
   }
   fct_orders {
