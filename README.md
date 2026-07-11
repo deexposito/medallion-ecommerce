@@ -197,18 +197,28 @@ reproduce:
 
 ## Setup
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate          # Windows
+.venv\Scripts\Activate.ps1      # Windows PowerShell; use .venv\Scripts\activate.bat for cmd.exe
 pip install -r requirements.txt
 
 cp profiles.yml.example profiles.yml   # adjust the path if needed
+
+# dbt looks for profiles.yml in ~/.dbt by default, not the project folder -
+# point it here instead (needed for every dbt command in this project)
+$env:DBT_PROFILES_DIR = "."
+
 dbt debug
 dbt build
 
-# hand off the Gold marts to Power BI (see power-bi/README.md)
-.venv\Scripts\python.exe scripts\export_gold_to_parquet.py
+# hand off the Gold marts (+ dim_date) to Power BI (see power-bi/README.md)
+python scripts\export_gold_to_parquet.py
 ```
+
+If `Activate.ps1` is blocked by PowerShell's execution policy, skip
+activation and call the venv's executables directly instead (same
+effect): `.venv\Scripts\dbt.exe build`,
+`.venv\Scripts\python.exe scripts\export_gold_to_parquet.py`.
 
 ## Roadmap
 
