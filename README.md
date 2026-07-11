@@ -51,6 +51,105 @@ flowchart LR
     Sources --> Bronze --> Silver --> Gold --> PowerBI[📊 Power BI]
 ```
 
+## Data model (Silver layer)
+
+A star schema (technically a fact constellation: four fact tables sharing
+conformed dimensions), designed grain-first before writing any SQL:
+
+- `fct_orders` — one row per order (an **accumulating snapshot fact**: the
+  row fills in as the order moves through purchase → approval → carrier →
+  delivery).
+- `fct_order_items` — one row per order item.
+- `fct_payments` — one row per payment (an order can have more than one).
+- `fct_reviews` — one row per review.
+
+All four share the same conformed dimensions (`dim_customers`,
+`dim_products`, `dim_sellers`, `dim_date`), so metrics from different
+facts stay comparable under the same filters in Power BI.
+
+**Keys**: natural keys are kept for `dim_customers`/`dim_products`/
+`dim_sellers` — this is a single source system with already-unique, stable
+IDs, so a surrogate key would add overhead without solving a real problem.
+`dim_date` is the one exception: it always gets an integer surrogate key
+(`date_key`, e.g. `20180724`), the universal convention that makes Power
+BI/DAX time intelligence (`SAMEPERIODLASTYEAR`, etc.) work without
+friction.
+
+**No SCD2**: this dataset is a static historical snapshot, not a
+continuously refreshed pipeline, so Slowly Changing Dimension history
+tracking would be engineering for a problem we don't have. `dim_customers`
+would be the natural SCD2 candidate if this ever became a live pipeline.
+
+**Referential integrity**: DuckDB (like most analytical engines) doesn't
+enforce foreign keys. dbt tests (`not_null`, `unique`, `relationships`)
+are the real substitute and will be added alongside the models.
+
+```mermaid
+erDiagram
+  dim_customers ||--o{ fct_orders : places
+  dim_date ||--o{ fct_orders : "purchased on"
+  fct_orders ||--o{ fct_order_items : contains
+  dim_products ||--o{ fct_order_items : is
+  dim_sellers ||--o{ fct_order_items : sells
+  fct_orders ||--o{ fct_payments : "paid via"
+  fct_orders ||--o{ fct_reviews : receives
+
+  dim_customers {
+    VARCHAR customer_id PK
+    VARCHAR customer_unique_id
+    VARCHAR customer_city
+    VARCHAR customer_state
+  }
+  dim_products {
+    VARCHAR product_id PK
+    VARCHAR product_category_name
+    VARCHAR category_name_english
+    INTEGER product_weight_g
+  }
+  dim_sellers {
+    VARCHAR seller_id PK
+    VARCHAR seller_city
+    VARCHAR seller_state
+  }
+  dim_date {
+    INTEGER date_key PK
+    DATE full_date
+    INTEGER year
+    INTEGER month
+    VARCHAR weekday
+  }
+  fct_orders {
+    VARCHAR order_id PK
+    VARCHAR customer_id FK
+    INTEGER purchase_date_key FK
+    VARCHAR order_status
+    INTEGER items_count
+    DECIMAL(10,2) order_total_value
+    DECIMAL(10,2) freight_total_value
+  }
+  fct_order_items {
+    VARCHAR order_id FK
+    INTEGER order_item_id PK
+    VARCHAR product_id FK
+    VARCHAR seller_id FK
+    DECIMAL(10,2) price
+    DECIMAL(10,2) freight_value
+  }
+  fct_payments {
+    VARCHAR order_id FK
+    INTEGER payment_sequential PK
+    VARCHAR payment_type
+    INTEGER installments
+    DECIMAL(10,2) payment_value
+  }
+  fct_reviews {
+    VARCHAR review_id PK
+    VARCHAR order_id FK
+    INTEGER review_score
+    TIMESTAMP review_creation_date
+  }
+```
+
 ## Dataset
 
 [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
