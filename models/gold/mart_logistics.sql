@@ -3,6 +3,7 @@ select
     oi.order_item_id,
     oi.seller_id,
     s.seller_state,
+    d.full_date as purchase_date,
     oi.freight_value,
     {{ days_between('d.full_date', 'o.order_delivered_customer_date::date') }} as delivery_days,
     {{ days_between('o.order_estimated_delivery_date::date', 'o.order_delivered_customer_date::date') }} as delay_days,

@@ -29,11 +29,16 @@ models:
   - name: mart_logistics
     description: >
       Denormalized shipping mart, grain: one row per order item, focused
-      on seller and delivery timing rather than revenue.
+      on seller and delivery timing rather than revenue. Carries
+      purchase_date so it can relate to the shared dim_date calendar
+      table in Power BI (originally missing - caught when adding a
+      calendar table to the report).
     columns:
       - name: order_id
         data_tests: [not_null]
       - name: order_item_id
         data_tests: [not_null]
       - name: seller_id
+        data_tests: [not_null]
+      - name: purchase_date
         data_tests: [not_null]
