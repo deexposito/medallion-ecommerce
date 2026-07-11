@@ -45,17 +45,26 @@ governs how Power Query parses source data, and even when it does affect
 display it often needs a full close/reopen of the file to take effect).
 Don't depend on it.
 
-**What actually works, regardless of locale: a custom format code on
-each measure**, bypassing the automatic "Display units" feature
-entirely. Select the measure → contextual ribbon `Measure tools` →
-`Format` dropdown → `Custom` → type a code:
-- Thousands: `#,##0.0,"K"` (the trailing comma divides by 1,000)
-- Millions: `#,##0.0,,"M"` (two trailing commas divide by 1,000,000)
+**What actually works, regardless of locale: divide the value inside a
+dedicated display measure, then format it with a plain (no-comma-trick)
+custom code.** The classic Excel scaling-comma format (`#,##0.0,,"M"`)
+is known to throw a syntax error in Power BI's format parser even though
+it works in Excel — don't fight it, sidestep it:
 
-Pick per measure based on its actual order of magnitude (e.g.
-`Total Revenue` on Olist is ~13.5M → use the millions code; something in
-the low thousands → use the thousands code; `Avg Order Value` is ~120-160
-→ no scaling needed, just a normal currency/decimal format).
+```dax
+Total Revenue (M) = DIVIDE([Total Revenue], 1000000)
+Total Freight (K) = DIVIDE([Total Freight], 1000)
+```
+
+Format each with `Measure tools` → `Format` → `Custom` → `0.0"M"` (or
+`0.0"K"`) — just a decimal placeholder and a literal suffix, no scaling
+syntax, always valid.
+
+**These are display-only measures — don't replace the originals.**
+`Avg Order Value` already depends on the unscaled `[Total Revenue]`
+(`DIVIDE([Total Revenue], [Total Orders])`); if you rescaled `Total
+Revenue` itself instead of adding a new measure, that calculation would
+silently break.
 
 ## 4. Measures table
 
@@ -98,10 +107,16 @@ Total Revenue = SUM(mart_sales[price])
 Total Freight = SUM(mart_sales[freight_value])
 Total Orders = DISTINCTCOUNT(mart_sales[order_id])
 Avg Order Value = DIVIDE([Total Revenue], [Total Orders])
+Freight Pct of Revenue = DIVIDE([Total Freight], [Total Revenue])
 ```
 
+`Freight Pct of Revenue` is the reason `Total Freight` earns its own
+measure instead of being folded into `Total Revenue`: shipping cost as a
+share of revenue is a real logistics-efficiency KPI, not just a leftover
+number.
+
 Visuals:
-- Cards: `Total Revenue`, `Total Orders`, `Avg Order Value`.
+- Cards: `Total Revenue`, `Total Orders`, `Avg Order Value`, `Total Freight`, `Freight Pct of Revenue`.
 - Line chart: `Total Revenue` by `full_date` (year/month drill-down).
 - Bar chart: `Total Revenue` by `product_category_name_english` (top 10).
 - Bar or map: `Total Revenue` by `customer_state`.
