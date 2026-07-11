@@ -13,24 +13,41 @@ dbt build
 ```
 
 This writes `power-bi/data/mart_sales.parquet`,
-`mart_customer_experience.parquet` and `mart_logistics.parquet`
-(gitignored — regenerate them, don't commit them).
+`mart_customer_experience.parquet`, `mart_logistics.parquet` and
+`dim_date.parquet` (gitignored — regenerate them, don't commit them).
 
 ## 2. Import into Power BI Desktop
 
 `Get Data` → `Parquet` → the connector asks for a path/URL, not a file
 browser — paste the local path directly, e.g.
 `C:\path\to\power-bi\data\mart_sales.parquet` (or prefix with `file:///`
-and forward slashes if that's rejected). Repeat for each of the 3 files.
-Import mode, not DirectQuery — these are static snapshots, not a live
-source.
+and forward slashes if that's rejected). Repeat for all 4 files
+(3 marts + `dim_date`). Import mode, not DirectQuery — these are static
+snapshots, not a live source.
 
-**No relationships needed.** Each mart is an intentionally flat,
+**No relationships between the 3 marts.** Each is an intentionally flat,
 denormalized table built for a single purpose — don't wire them together
 with the customer/product/seller keys they happen to share. If a future
 question genuinely needs cross-mart analysis, that's a sign a new mart
 (or going back to Silver) is the right answer, not ad-hoc relationships
 bolted onto Gold.
+
+**`dim_date` is the one exception — it's meant to relate to every mart.**
+It's the shared calendar table (already designed for exactly this in
+Silver, with a surrogate `date_key` for the reason explained there):
+
+1. Select `dim_date` → `Table tools` → `Mark as date table` → pick `full_date`.
+2. Build relationships (`Model` view, drag `full_date` from `dim_date` to
+   the matching column on each mart): `dim_date[full_date]` →
+   `mart_sales[full_date]`, → `mart_logistics[purchase_date]`. For
+   `mart_customer_experience[review_creation_date]`, first check its data
+   type is `Date` (not `Date/Time`) in Power Query — Olist review
+   timestamps are always midnight, so truncating to date loses nothing —
+   otherwise the relationship may not match rows correctly.
+3. This is what makes real time-intelligence measures
+   (`SAMEPERIODLASTYEAR`, `TOTALYTD`, etc.) and a single date slicer that
+   filters every page actually work — without a marked date table they
+   either error or silently give wrong numbers.
 
 ## 3. Report locale (English units: K/M, not "mil")
 
