@@ -28,11 +28,22 @@ question genuinely needs cross-mart analysis, that's a sign a new mart
 (or going back to Silver) is the right answer, not ad-hoc relationships
 bolted onto Gold.
 
-## 3. Measures and pages
+## 3. Measures table
 
-### Page 1 — Sales (`mart_sales`)
+Before creating any measure: `Home` → `Enter Data` → a one-column,
+one-row placeholder table → name it `_Measures` → `Load`. Hide its
+placeholder column. Every measure below gets created **on `_Measures`**
+(select it in the Fields pane before `New Measure`), not on the mart
+tables — keeps each mart's field list to its actual columns, and groups
+all KPIs in one place. Optionally set each measure's `Display Folder`
+(Model view → measure → Properties) to `Sales`, `Customer Experience` or
+`Logistics` to sub-group them inside `_Measures`.
 
-Measures (`New Measure`):
+## 4. Measures and pages
+
+### Page 1 — Sales (source table: `mart_sales`)
+
+Measures (create on `_Measures`):
 
 ```dax
 Total Revenue = SUM(mart_sales[price])
@@ -47,9 +58,9 @@ Visuals:
 - Bar chart: `Total Revenue` by `product_category_name_english` (top 10).
 - Bar or map: `Total Revenue` by `customer_state`.
 
-### Page 2 — Customer experience (`mart_customer_experience`)
+### Page 2 — Customer experience (source table: `mart_customer_experience`)
 
-Measures:
+Measures (create on `_Measures`):
 
 ```dax
 Avg Review Score = AVERAGE(mart_customer_experience[review_score])
@@ -64,9 +75,9 @@ Visuals:
 - Column chart: count of reviews by `review_score` (1-5 distribution).
 - Line chart: `Avg Review Score` by `review_creation_date` (month).
 
-### Page 3 — Logistics (`mart_logistics`)
+### Page 3 — Logistics (source table: `mart_logistics`)
 
-Measures:
+Measures (create on `_Measures`):
 
 ```dax
 Pct On Time Deliveries =
@@ -84,13 +95,13 @@ Visuals:
 - Table: `seller_id`, `Avg Delay Days (Late Only)`, count of items — sorted
   descending, to spot the worst-performing sellers.
 
-## 4. Save and commit
+## 5. Save and commit
 
 Save as `power-bi/olist-medallion.pbix`. In Import mode the data is
 embedded in the file itself, so it's self-contained — **commit the
 `.pbix`**, unlike the parquet staging files.
 
-## 5. Screenshots
+## 6. Screenshots
 
 Export each page as an image (`File` → `Export` → `Export to PDF`, or a
 plain screenshot) into `power-bi/screenshots/` for the README and the
