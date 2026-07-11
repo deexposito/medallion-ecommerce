@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      One row per `customer_id`. Note an Olist data quirk: `customer_id`
+      is generated per order, not per person — `customer_unique_id` is
+      the stable identifier for the actual person across multiple orders.
+      This dimension's grain matches `fct_orders.customer_id` on purpose.
+    columns:
+      - name: customer_id
+        data_tests: [not_null, unique]
+
+  - name: dim_products
+    description: One row per `product_id`, enriched with the English category name.
+    columns:
+      - name: product_id
+        data_tests: [not_null, unique]
+
+  - name: dim_sellers
+    description: One row per `seller_id`.
+    columns:
+      - name: seller_id
+        data_tests: [not_null, unique]
+
+  - name: dim_date
+    description: >
+      Date spine covering the order date range plus a 60-day buffer.
+      `date_key` is the standard integer surrogate key (YYYYMMDD) used to
+      join fact tables for Power BI time intelligence.
+    columns:
+      - name: date_key
+        data_tests: [not_null, unique]
+
+  - name: fct_orders
+    description: "Accumulating snapshot fact, grain: one row per order."
+    columns:
+      - name: order_id
+        data_tests: [not_null, unique]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: purchase_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+  - name: fct_order_items
+    description: "Transaction fact, grain: one row per order item."
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: seller_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_id
+
+  - name: fct_payments
+    description: "Transaction fact, grain: one row per payment (an order can have more than one)."
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+
+  - name: fct_reviews
+    description: >
+      Transaction fact. Grain is the composite (review_id, order_id), not
+      review_id alone: testing revealed review_id isn't globally unique
+      (the same value can appear for different orders), and an order can
+      legitimately receive more than one review. See
+      assert_fct_reviews_grain.sql for the grain test.
+    columns:
+      - name: review_id
+        data_tests: [not_null]
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id

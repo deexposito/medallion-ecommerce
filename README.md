@@ -61,7 +61,12 @@ conformed dimensions), designed grain-first before writing any SQL:
   delivery).
 - `fct_order_items` — one row per order item.
 - `fct_payments` — one row per payment (an order can have more than one).
-- `fct_reviews` — one row per review.
+- `fct_reviews` — one row per **(review_id, order_id)**, not review_id
+  alone. Discovered during testing: `review_id` isn't globally unique (it
+  can repeat across different orders), and an order can legitimately get
+  more than one review. The initial design assumed a simple grain; the
+  data disagreed, so the model and its tests were corrected to match
+  reality instead of silencing the failing test.
 
 All four share the same conformed dimensions (`dim_customers`,
 `dim_products`, `dim_sellers`, `dim_date`), so metrics from different
@@ -81,8 +86,9 @@ tracking would be engineering for a problem we don't have. `dim_customers`
 would be the natural SCD2 candidate if this ever became a live pipeline.
 
 **Referential integrity**: DuckDB (like most analytical engines) doesn't
-enforce foreign keys. dbt tests (`not_null`, `unique`, `relationships`)
-are the real substitute and will be added alongside the models.
+enforce foreign keys. 45 dbt tests (`not_null`, `unique`, `relationships`,
+plus 3 custom grain-uniqueness tests) are the real substitute — see
+`models/silver/schema.yml` and `tests/`.
 
 ```mermaid
 erDiagram
@@ -144,7 +150,7 @@ erDiagram
   }
   fct_reviews {
     VARCHAR review_id PK
-    VARCHAR order_id FK
+    VARCHAR order_id PK
     INTEGER review_score
     TIMESTAMP review_creation_date
   }
@@ -182,7 +188,7 @@ dbt build
 
 - [x] **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
 - [x] **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
-- [ ] **Phase 2 — Silver**: dimensional model (`dim_*`/`fct_*`), joins and business rules, first dbt tests (`not_null`, `unique`, `relationships`).
+- [x] **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
 - [ ] **Phase 3 — Gold**: 3 domain data marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`).
 - [ ] **Phase 4 — Consumption**: Power BI dashboard connected to Gold, screenshots in `power-bi/`.
 - [ ] **Phase 5 — Polish**: `dbt docs generate`, final README, optional CI with GitHub Actions (`dbt build` on every push).
@@ -190,4 +196,4 @@ dbt build
 
 ## Status
 
-🚧 In progress — Phase 1 (Bronze) complete, Phase 2 (Silver) underway.
+🚧 In progress — Phase 2 (Silver) complete, Phase 3 (Gold) next.
