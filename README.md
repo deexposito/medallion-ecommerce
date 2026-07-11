@@ -22,8 +22,9 @@ certifications.
 ## Architecture
 
 ```mermaid
-flowchart LR
-    subgraph Sources["Sources (Olist CSVs)"]
+flowchart TD
+    subgraph Sources["Sources — Olist CSVs"]
+        direction LR
         A1[customers]
         A2[orders]
         A3[order_items]
@@ -34,21 +35,29 @@ flowchart LR
         A8[geolocation]
     end
 
-    subgraph Bronze["🥉 Bronze — Landing/Staging"]
-        B[stg_*.sql]
+    Sources --> Bronze
+
+    subgraph Bronze["🥉 Bronze — Landing / Staging"]
+        B["stg_*.sql — 1:1 with source, type casting only, no business logic"]
     end
+
+    Bronze --> Silver
 
     subgraph Silver["🥈 Silver — Semantic layer"]
-        S[dim_* / fct_*.sql]
+        S1["dim_customers · dim_products · dim_sellers · dim_date"]
+        S2["fct_orders · fct_order_items · fct_payments · fct_reviews"]
     end
 
+    Silver --> Gold
+
     subgraph Gold["🥇 Gold — Domains"]
+        direction LR
         G1[mart_sales]
         G2[mart_customer_experience]
         G3[mart_logistics]
     end
 
-    Sources --> Bronze --> Silver --> Gold --> PowerBI[📊 Power BI]
+    Gold --> PowerBI["📊 Power BI — 3-page dashboard"]
 ```
 
 ## Data model (Silver layer)
@@ -273,7 +282,3 @@ without needing the dataset. Deliberately not a full `dbt build`; see
 - **Phase 4 — Consumption**: 3-page Power BI dashboard (Sales, Customer Experience, Logistics) connected to the 3 Gold marts + shared `dim_date` calendar table. Built by hand in Power BI Desktop per `power-bi/README.md`.
 - **Phase 5 — Polish**: `dbt docs generate` (lineage graph), lightweight CI (`dbt parse` — `docs/decisions/0002-lightweight-ci.md`).
 - **Phase 6 — Publish**: public GitHub repo, CI passing on GitHub Actions.
-
-## Status
-
-✅ Complete — [github.com/deexposito/medallion-ecommerce](https://github.com/deexposito/medallion-ecommerce).
