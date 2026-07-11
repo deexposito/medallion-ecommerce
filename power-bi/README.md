@@ -18,8 +18,12 @@ This writes `power-bi/data/mart_sales.parquet`,
 
 ## 2. Import into Power BI Desktop
 
-`Get Data` → `Parquet` → select each of the 3 files → `Load` (Import
-mode, not DirectQuery — these are static snapshots, not a live source).
+`Get Data` → `Parquet` → the connector asks for a path/URL, not a file
+browser — paste the local path directly, e.g.
+`C:\path\to\power-bi\data\mart_sales.parquet` (or prefix with `file:///`
+and forward slashes if that's rejected). Repeat for each of the 3 files.
+Import mode, not DirectQuery — these are static snapshots, not a live
+source.
 
 **No relationships needed.** Each mart is an intentionally flat,
 denormalized table built for a single purpose — don't wire them together
@@ -28,7 +32,24 @@ question genuinely needs cross-mart analysis, that's a sign a new mart
 (or going back to Silver) is the right answer, not ad-hoc relationships
 bolted onto Gold.
 
-## 3. Measures table
+## 3. Report locale (English units: K/M, not "mil")
+
+Power BI's automatic "Display units" on cards/axes are labelled
+according to the report's language, which defaults to the Windows
+locale — in Catalan/Spanish that's "mil"/"M" instead of "K"/"M".
+
+`File` → `Options and settings` → `Options` → `Current File` →
+`Regional Settings` → set `Locale` to `English (United States)`. This
+also switches thousands/decimal separators to English convention —
+worth doing before building anything, since it's a portfolio piece.
+
+For exact control on a specific measure regardless of locale (e.g. force
+`Total Revenue` to always show as millions), set a custom format code on
+the measure instead: `Measure tools` → `Format` → `Custom`:
+- Thousands: `#,##0.0,"K"` (the trailing comma divides by 1,000)
+- Millions: `#,##0.0,,"M"` (two trailing commas divide by 1,000,000)
+
+## 4. Measures table
 
 Before creating any measure: `Home` → `Enter Data` → a one-column,
 one-row placeholder table → name it `_Measures` → `Load`. Hide its
@@ -39,7 +60,26 @@ all KPIs in one place. Optionally set each measure's `Display Folder`
 (Model view → measure → Properties) to `Sales`, `Customer Experience` or
 `Logistics` to sub-group them inside `_Measures`.
 
-## 4. Measures and pages
+## 5. Why `DIVIDE(...)` instead of `AVERAGE(...)`
+
+`Avg Order Value` and `Pct On Time Deliveries` use `DIVIDE`, not
+`AVERAGE`, for two separate reasons:
+
+1. **Grain mismatch.** `mart_sales` has one row per *order item*, not per
+   order. `AVERAGE(mart_sales[price])` would average item prices, not
+   order values — an order with 3 items counts as 3 rows, not 1. To get
+   "average value per order" you need a ratio of two aggregates at
+   different grains: total revenue over distinct order count, i.e.
+   `DIVIDE([Total Revenue], [Total Orders])`. `AVERAGE` only gives the
+   right answer when a table row already *is* the unit you want to
+   average (which is why `Avg Review Score` legitimately uses `AVERAGE`
+   directly — each row already is one review).
+2. **Safe division.** Even where the grain matches, the raw `/` operator
+   throws `#DIV/0!`/Infinity the moment a filter drives the denominator
+   to zero (e.g. a month with no orders). `DIVIDE(numerator,
+   denominator)` returns blank instead of breaking the visual.
+
+## 6. Measures and pages
 
 ### Page 1 — Sales (source table: `mart_sales`)
 
@@ -95,13 +135,13 @@ Visuals:
 - Table: `seller_id`, `Avg Delay Days (Late Only)`, count of items — sorted
   descending, to spot the worst-performing sellers.
 
-## 5. Save and commit
+## 7. Save and commit
 
 Save as `power-bi/olist-medallion.pbix`. In Import mode the data is
 embedded in the file itself, so it's self-contained — **commit the
 `.pbix`**, unlike the parquet staging files.
 
-## 6. Screenshots
+## 8. Screenshots
 
 Export each page as an image (`File` → `Export` → `Export to PDF`, or a
 plain screenshot) into `power-bi/screenshots/` for the README and the
