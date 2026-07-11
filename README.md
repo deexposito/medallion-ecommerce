@@ -205,6 +205,9 @@ pip install -r requirements.txt
 cp profiles.yml.example profiles.yml   # adjust the path if needed
 dbt debug
 dbt build
+
+# hand off the Gold marts to Power BI (see power-bi/README.md)
+.venv\Scripts\python.exe scripts\export_gold_to_parquet.py
 ```
 
 ## Roadmap
@@ -213,7 +216,7 @@ dbt build
 - [x] **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
 - [x] **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
 - [x] **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
-- [ ] **Phase 4 — Consumption**: Power BI dashboard connected to Gold, screenshots in `power-bi/`.
+- [ ] **Phase 4 — Consumption**: Power BI dashboard connected to Gold. Data hand-off (`scripts/export_gold_to_parquet.py`) and build guide (`power-bi/README.md`) are ready — the report itself is built by hand in Power BI Desktop, no CLI can author visuals.
 - [ ] **Phase 5 — Polish**: `dbt docs generate`, final README, optional CI with GitHub Actions (`dbt build` on every push).
 - [ ] **Phase 6 — Publish**: public GitHub repo, linked from the portfolio.
 
