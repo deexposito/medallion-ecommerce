@@ -124,23 +124,23 @@ erDiagram
     INTEGER purchase_date_key FK
     VARCHAR order_status
     INTEGER items_count
-    DECIMAL(10,2) order_total_value
-    DECIMAL(10,2) freight_total_value
+    DECIMAL order_total_value
+    DECIMAL freight_total_value
   }
   fct_order_items {
     VARCHAR order_id FK
     INTEGER order_item_id PK
     VARCHAR product_id FK
     VARCHAR seller_id FK
-    DECIMAL(10,2) price
-    DECIMAL(10,2) freight_value
+    DECIMAL price
+    DECIMAL freight_value
   }
   fct_payments {
     VARCHAR order_id FK
     INTEGER payment_sequential PK
     VARCHAR payment_type
     INTEGER installments
-    DECIMAL(10,2) payment_value
+    DECIMAL payment_value
   }
   fct_reviews {
     VARCHAR review_id PK
@@ -149,6 +149,8 @@ erDiagram
     TIMESTAMP review_creation_date
   }
 ```
+
+*(`DECIMAL` fields are `DECIMAL(10,2)` in the actual dbt models — Mermaid's ER parser doesn't allow commas inside a type name, so precision is dropped in the diagram only.)*
 
 ## Dataset
 
