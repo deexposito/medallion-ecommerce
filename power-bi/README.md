@@ -49,41 +49,7 @@ Silver, with a surrogate `date_key` for the reason explained there):
    filters every page actually work — without a marked date table they
    either error or silently give wrong numbers.
 
-## 3. Report locale (English units: K/M, not "mil")
-
-Power BI's automatic "Display units" on cards/axes are labelled
-according to the report's language, which defaults to the Windows locale
-— in Catalan/Spanish that's "mil"/"M" instead of "K"/"M".
-
-**`File` → `Options and settings` → `Options` → `Current File` →
-`Regional Settings` → `Locale` → `English (United States)` is the
-"correct in theory" fix, but it isn't reliable in practice** (it mainly
-governs how Power Query parses source data, and even when it does affect
-display it often needs a full close/reopen of the file to take effect).
-Don't depend on it.
-
-**What actually works, regardless of locale: divide the value inside a
-dedicated display measure, then format it with a plain (no-comma-trick)
-custom code.** The classic Excel scaling-comma format (`#,##0.0,,"M"`)
-is known to throw a syntax error in Power BI's format parser even though
-it works in Excel — don't fight it, sidestep it:
-
-```dax
-Total Revenue (M) = DIVIDE([Total Revenue], 1000000)
-Total Freight (K) = DIVIDE([Total Freight], 1000)
-```
-
-Format each with `Measure tools` → `Format` → `Custom` → `0.0"M"` (or
-`0.0"K"`) — just a decimal placeholder and a literal suffix, no scaling
-syntax, always valid.
-
-**These are display-only measures — don't replace the originals.**
-`Avg Order Value` already depends on the unscaled `[Total Revenue]`
-(`DIVIDE([Total Revenue], [Total Orders])`); if you rescaled `Total
-Revenue` itself instead of adding a new measure, that calculation would
-silently break.
-
-## 4. Measures table
+## 3. Measures table
 
 Before creating any measure: `Home` → `Enter Data` → a one-column,
 one-row placeholder table → name it `_Measures` → `Load`. Hide its
@@ -94,7 +60,7 @@ all KPIs in one place. Optionally set each measure's `Display Folder`
 (Model view → measure → Properties) to `Sales`, `Customer Experience` or
 `Logistics` to sub-group them inside `_Measures`.
 
-## 5. Why `DIVIDE(...)` instead of `AVERAGE(...)`
+## 4. Why `DIVIDE(...)` instead of `AVERAGE(...)`
 
 `Avg Order Value` and `Pct On Time Deliveries` use `DIVIDE`, not
 `AVERAGE`, for two separate reasons:
@@ -113,7 +79,7 @@ all KPIs in one place. Optionally set each measure's `Display Folder`
    to zero (e.g. a month with no orders). `DIVIDE(numerator,
    denominator)` returns blank instead of breaking the visual.
 
-## 6. Measures and pages
+## 5. Measures and pages
 
 ### Page 1 — Sales (source table: `mart_sales`)
 
@@ -169,21 +135,26 @@ DIVIDE(
 )
 Avg Delivery Days = AVERAGE(mart_logistics[delivery_days])
 Avg Delay Days (Late Only) = CALCULATE(AVERAGE(mart_logistics[delay_days]), mart_logistics[is_late] = TRUE)
+Late Deliveries Count = CALCULATE(COUNTROWS(mart_logistics), mart_logistics[is_late] = TRUE)
 ```
 
 Visuals:
 - Cards: `Pct On Time Deliveries`, `Avg Delivery Days`.
 - Bar chart: `Pct On Time Deliveries` by `seller_state_name` (full state name).
-- Table: `seller_id`, `Avg Delay Days (Late Only)`, count of items — sorted
-  descending, to spot the worst-performing sellers.
+- Table: `seller_id`, `Avg Delay Days (Late Only)`, `Late Deliveries Count` —
+  sorted by `Avg Delay Days (Late Only)` descending, **with a visual-level
+  filter `Late Deliveries Count >= 5`**. Without it, a seller with exactly
+  one 167-day-late delivery outranks a seller with 50 deliveries
+  averaging 20 days late — an average over n=1 isn't a pattern, and a
+  "worst sellers" leaderboard should rank patterns, not one-off outliers.
 
-## 7. Save and commit
+## 6. Save and commit
 
 Save as `power-bi/olist-medallion.pbix`. In Import mode the data is
 embedded in the file itself, so it's self-contained — **commit the
 `.pbix`**, unlike the parquet staging files.
 
-## 8. Screenshots
+## 7. Screenshots
 
 Export each page as an image (`File` → `Export` → `Export to PDF`, or a
 plain screenshot) into `power-bi/screenshots/` for the README and the
