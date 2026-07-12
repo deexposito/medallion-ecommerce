@@ -5,6 +5,8 @@ as a hands-on exercise in the Medallion architecture and as a portfolio
 piece. Built on public e-commerce (retail) data, unrelated to any
 employer's real data.
 
+![Sales dashboard](power-bi/screenshots/sales.png)
+
 ## Why this project
 
 A small-scale replica, with open data, of the classic three-layer pattern
@@ -195,6 +197,12 @@ The data backs this up with a real finding: average review score is
 **4.29 for on-time deliveries vs. 2.27 for late ones** (and 1.76 for
 orders reviewed before delivery even completed) — a concrete, queryable
 answer to "does shipping performance affect customer satisfaction?".
+
+## Dashboard
+
+| Sales | Customer Experience | Logistics |
+|---|---|---|
+| [![Sales](power-bi/screenshots/sales.png)](power-bi/screenshots/sales.png) | [![Customer Experience](power-bi/screenshots/customer-experience.png)](power-bi/screenshots/customer-experience.png) | [![Logistics](power-bi/screenshots/logistics.png)](power-bi/screenshots/logistics.png) |
 
 ## Key findings
 
