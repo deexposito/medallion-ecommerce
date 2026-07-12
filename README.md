@@ -225,6 +225,75 @@ Brazilian marketplace, split across 9 CSVs — a realistic stand-in for a
 "multiple source systems" scenario (customers, orders, payments,
 logistics, reviews), which makes landing/staging per source meaningful.
 
+The raw schema, before any transformation (this is the "before" picture —
+see the Silver ER diagram above for the "after"):
+
+```mermaid
+erDiagram
+  customers ||--o{ orders : places
+  orders ||--o{ order_items : contains
+  orders ||--o{ order_payments : "paid via"
+  orders ||--o{ order_reviews : receives
+  products ||--o{ order_items : is
+  sellers ||--o{ order_items : sells
+  product_category_name_translation ||--o{ products : categorizes
+
+  customers {
+    VARCHAR customer_id PK
+    VARCHAR customer_unique_id
+    VARCHAR customer_zip_code_prefix
+    VARCHAR customer_city
+    VARCHAR customer_state
+  }
+  orders {
+    VARCHAR order_id PK
+    VARCHAR customer_id FK
+    VARCHAR order_status
+    TIMESTAMP order_purchase_timestamp
+    TIMESTAMP order_delivered_customer_date
+    TIMESTAMP order_estimated_delivery_date
+  }
+  order_items {
+    VARCHAR order_id FK
+    INTEGER order_item_id PK
+    VARCHAR product_id FK
+    VARCHAR seller_id FK
+    DECIMAL price
+    DECIMAL freight_value
+  }
+  order_payments {
+    VARCHAR order_id FK
+    INTEGER payment_sequential PK
+    VARCHAR payment_type
+    DECIMAL payment_value
+  }
+  order_reviews {
+    VARCHAR review_id PK
+    VARCHAR order_id FK
+    INTEGER review_score
+    TIMESTAMP review_creation_date
+  }
+  products {
+    VARCHAR product_id PK
+    VARCHAR product_category_name
+    INTEGER product_weight_g
+  }
+  sellers {
+    VARCHAR seller_id PK
+    VARCHAR seller_zip_code_prefix
+    VARCHAR seller_city
+    VARCHAR seller_state
+  }
+  product_category_name_translation {
+    VARCHAR product_category_name PK
+    VARCHAR product_category_name_english
+  }
+```
+
+`geolocation` (zip code → lat/lng) isn't shown: it's a standalone lookup
+joined loosely by zip code prefix, not a true foreign key relationship
+like the others.
+
 **Raw data is not distributed in this repo** (size and license). To
 reproduce:
 
