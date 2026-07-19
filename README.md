@@ -354,8 +354,8 @@ without needing the dataset. Deliberately not a full `dbt build`; see
 
 - **Phase 0 — Setup**: project skeleton, dbt + DuckDB installed, Git repo initialized.
 - **Phase 1 — Bronze**: dataset downloaded, `sources.yml` (8 tables via `external_location`) + 1 `dbt seed` (small reference table), 9 `stg_*.sql` models. Decision documented in `docs/decisions/0001-seeds-vs-external-sources.md`.
-- **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), 45 dbt tests (`not_null`, `unique`, `relationships` + 3 custom grain tests). Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
-- **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro. 57 dbt tests passing.
+- **Phase 2 — Silver**: dimensional model (4 `dim_*` + 4 `fct_*`), with `not_null`/`unique`/`relationships` tests plus 3 custom grain tests enforcing the referential integrity DuckDB doesn't. Fixed a real data-quality finding (`fct_reviews` composite grain) discovered by the tests.
+- **Phase 3 — Gold**: 3 denormalized domain marts (`mart_sales`, `mart_customer_experience`, `mart_logistics`), shared delivery-timing logic factored into a macro, tests extended to cover them.
 - **Phase 4 — Consumption**: 3-page Power BI dashboard (Sales, Customer Experience, Logistics) connected to the 3 Gold marts + shared `dim_date` calendar table. Built by hand in Power BI Desktop per `power-bi/README.md`.
 - **Phase 5 — Polish**: `dbt docs generate` (lineage graph), lightweight CI (`dbt parse` — `docs/decisions/0002-lightweight-ci.md`).
-- **Phase 6 — Publish**: public GitHub repo, CI passing on GitHub Actions.
+- **Phase 6 — Publish**: public GitHub repo, CI passing on GitHub Actions. Final state: **45 dbt tests** (`not_null`, `unique`, `relationships`, plus custom singular tests) across seeds, staging, the dimensional model, and the marts — `dbt build` runs 68 steps in total (2 seeds + 11 models + 10 views + 45 tests).
